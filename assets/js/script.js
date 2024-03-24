@@ -71,6 +71,7 @@ function handleAddTask(event) {
         document.querySelector("#description").value = "";                  
         document.querySelector("#deadline").value = "";                     
     });
+}
     
     let createTaskButton = document.querySelector("#create-task");
     createTaskButton.addEventListener("click", function() {                 
@@ -100,7 +101,7 @@ function createTaskCard(task) {
     checkDeadlines(task, taskCard);                                                                                                                     
     handleDrag(task, taskCard);                                                                                                                         
     handleDeleteTask(task);                                                                                                                             
-
+}
 //checkDeadlines function check how close the timeline is for each date picked
 
 function checkDeadlines(task, taskCard) {                       
@@ -143,6 +144,63 @@ function handleDeleteTask(task) {
             localStorage.setItem("done", JSON.stringify(done));                                 
         })
     })
+
+}
+// Function to handle starting dragging tasks for each todo/inprogress and complete section.
+function handleDrag(task, taskCard) {                                                               
+    $(taskCard).draggable({                                                                         
+        containment: "document",                                                                       
+        connectToSortable: "#toDo, #inProgress, #complete",                         
+        stop: function(event, ui) {                                                                
+            let taskCardId = taskCard.getAttribute("id");                                           
+            
+            if ($(ui.helper).parent().is("#toDo")) {                                       
+                toDo.push(task)                                                                     
+                if (inProgress.some(i => i.id === parseInt(taskCardId))) {                              
+                    inProgress = inProgress.filter(task => task.id !== parseInt(taskCardId));          
+                }
+                if (done.some(i => i.id === parseInt(taskCardId))) {                                   
+                    done = done.filter(task => task.id !== parseInt(taskCardId));                       
+                }
+                localStorage.setItem("toDo", JSON.stringify(toDo));                                 
+                localStorage.setItem("inProgress", JSON.stringify(inProgress));                     
+                localStorage.setItem("done", JSON.stringify(done));                                 
+            } 
+            
+            else if ($(ui.helper).parent().is("#inProgress")) {                             
+                inProgress.push(task);                                                             
+                if (toDo.some(i => i.id === parseInt(taskCardId))) {                                    
+                    toDo = toDo.filter(task => task.id !== parseInt(taskCardId));                       
+                }
+                if (done.some(i => i.id === parseInt(taskCardId))) {                                   
+                    done = done.filter(task => task.id !== parseInt(taskCardId));                       
+                }
+                localStorage.setItem("toDo", JSON.stringify(toDo));                                 
+                localStorage.setItem("inProgress", JSON.stringify(inProgress));                    
+                localStorage.setItem("done", JSON.stringify(done));                                
+            } 
+            
+            else if ($(ui.helper).parent().is("#complete")) {                                    
+                done.push(task);                                                                    
+                if (toDo.some(i => i.id === parseInt(taskCardId))) {                                   
+                    toDo = toDo.filter(task => task.id !== parseInt(taskCardId));                       
+                }
+                if (inProgress.some(i => i.id === parseInt(taskCardId))) {                             
+                    inProgress = inProgress.filter(task => task.id !== parseInt(taskCardId));          
+                }
+                localStorage.setItem("toDo", JSON.stringify(toDo));                                 
+                localStorage.setItem("inProgress", JSON.stringify(inProgress));                     
+                localStorage.setItem("done", JSON.stringify(done));                                
+            }
+        }
+    })
+
+    $("#toDo, #inProgress, #complete").sortable();                               
 }
 
-
+// Todo: when the page loads, render the task list, add event listeners, make lanes droppable, and make the due date field a date picker
+$(document).ready(function () {                 
+    nextId = localStorage.getItem("nextId");    
+    renderTaskList();                           
+    handleAddTask();                           
+});
