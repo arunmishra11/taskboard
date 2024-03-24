@@ -10,6 +10,7 @@ let inProgress = [];
 let done = [];
 
 
+
 // Function to render the task list 
 function renderTaskList() {                                                                                                                                 // WHEN the task list is rendered
     toDo = JSON.parse(localStorage.getItem("toDo")) || [];                                                                                                  // THEN the toDo items in local storage are checked
@@ -54,3 +55,94 @@ function renderTaskList() {                                                     
         handleDeleteTask(task);                                                                                                                             // THEN the "delete" button on the task card awaits to be clicked
     })
 };
+
+// Function to generate a unique task id
+function generateTaskId() {                             
+    nextId++                                            
+    localStorage.setItem("nextId", nextId);             
+    return nextId;                                     
+}
+
+// function to create a tasks and add them to the local storage
+function handleAddTask(event) {
+    let discardTaskButton = document.querySelector("#dismiss");
+    discardTaskButton.addEventListener("click", function() {                
+        document.querySelector("#task").value = "";                         
+        document.querySelector("#description").value = "";                  
+        document.querySelector("#deadline").value = "";                     
+    });
+    
+    let createTaskButton = document.querySelector("#create-task");
+    createTaskButton.addEventListener("click", function() {                 
+        let task = {                                                        
+            id: generateTaskId(),                                               
+            task: document.querySelector("#task").value,                       
+            description: document.querySelector("#description").value,          
+            deadline: document.querySelector("#deadline").value,                
+        };
+        
+        toDo.push(task);                                                   
+        localStorage.setItem("toDo", JSON.stringify(toDo));                 
+        createTaskCard(task);                                               
+        
+        document.querySelector("#task").value = "";                         
+        document.querySelector("#description").value = "";                  
+        document.querySelector("#deadline").value = "";                     
+    });
+    //function to create a task and add them to the first to-do column
+function createTaskCard(task) {                                                                                                                         
+    taskCard.setAttribute("class", "task-card");                                                                                                        
+    taskCard.setAttribute("id", task.id);                                                                                                               
+    taskCard.setAttribute("style", "z-index: 1");                                                                                                       
+    taskCard.innerHTML = task.task + "<br>" + task.description + "<br>" + task.deadline + "<br>" + `<button class="delete-button">delete</button>`;     
+    document.querySelector("#todo-cards").appendChild(taskCard);                                                                                       
+    
+    checkDeadlines(task, taskCard);                                                                                                                     
+    handleDrag(task, taskCard);                                                                                                                         
+    handleDeleteTask(task);                                                                                                                             
+
+//checkDeadlines function check how close the timeline is for each date picked
+
+function checkDeadlines(task, taskCard) {                       
+   //setting some variables for the date and checking the condition for the date
+    let currentDate = dayjs()
+    let taskDate = dayjs(task.deadline);
+    let dateDifference = taskDate.diff(currentDate, "day")
+   
+    if (dateDifference <= -1) {                                 
+        taskCard.classList.add("overdue");                      
+    } else if (dateDifference <= 6) {                          
+        taskCard.classList.add("close");             
+    } else {                                                    
+        taskCard.classList.add("no-rush");               
+    }
+}
+
+// function to handle deleting a task
+
+function handleDeleteTask(task) {                                                              
+    let deleteButton = document.querySelectorAll(".delete-button");                             
+    deleteButton.forEach(function(button) {                                                     
+        button.addEventListener("click", function() {                                           
+            let taskCard = button.closest(".task-card");                                        
+            let taskCardId = taskCard.getAttribute("id");                                       
+            taskCard.remove();                                                                  
+            
+            if (toDo.some(i => i.id === parseInt(taskCardId))) {                                
+                toDo = toDo.filter(task => task.id !== parseInt(taskCardId));                   
+            }
+            if (inProgress.some(i => i.id === parseInt(taskCardId))) {                          
+                inProgress = inProgress.filter(task => task.id !== parseInt(taskCardId));       
+            }
+            if (done.some(i => i.id === parseInt(taskCardId))) {                               
+                done = done.filter(task => task.id !== parseInt(taskCardId));                  
+            }
+            
+            localStorage.setItem("toDo", JSON.stringify(toDo));                                 
+            localStorage.setItem("inProgress", JSON.stringify(inProgress));                     
+            localStorage.setItem("done", JSON.stringify(done));                                 
+        })
+    })
+}
+
+
