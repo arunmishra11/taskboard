@@ -8,9 +8,30 @@ body {
 }
 
 .task-card {
-  margin: 0 auto;
+  margin: 20px 0px 20px 0px;
 }
 
 .task-card:hover {
   cursor: grab;
+}
+
+.modal-body input {
+  width: 100%;
+  margin: 0px 0px 30px 0px;
+}
+
+.plenty-of-time {
+  background-color: green;
+}
+
+.nearing-deadline {
+  background-color: yellow;
+}
+
+.overdue {
+  background-color: red;
+}
+
+.complete {
+  background-color: white;
 }
